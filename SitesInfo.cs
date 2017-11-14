@@ -8,10 +8,20 @@ namespace SSLCertCheck
 {
 	public class SitesInfo
 	{
+		#region Constructors
+
 		public SitesInfo(string url)
 		{
             this.Url = url;
         }
+
+		#endregion
+
+
+		#region Fields
+
+		#endregion
+
 
 		#region Properties
 
@@ -24,6 +34,7 @@ namespace SSLCertCheck
         public X509Certificate2 Certificate { get; private set; }
 
 		#endregion
+
 
 		#region Methods
 
