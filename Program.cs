@@ -41,6 +41,10 @@ namespace SSLCertCheck
 
         }
 
+		/// <summary>
+		/// Reads a text file and returns each line as an array of strings
+		/// </summary>
+		/// <returns>An array of URLs to check</returns>
 		public static string[] LoadSites()
 		{
 			string sitesListFile = "./certlist.txt";
@@ -59,5 +63,18 @@ namespace SSLCertCheck
 			return sitesList;
 		}
 
+		/// <summary>
+		/// Colors the console.
+		/// </summary>
+		/// <param name="message">Message line to display</param>
+		/// <param name="bg">Background color to use</param>
+		/// <param name="fg">Foreground color to use</param>
+		public static void ColorConsole(string message, ConsoleColor bg = ConsoleColor.Blue, ConsoleColor fg = ConsoleColor.Yellow)
+		{
+			Console.BackgroundColor = bg;
+			Console.ForegroundColor = fg;
+			Console.WriteLine (message);
+			Console.ResetColor ();
+		}
 	}
 }

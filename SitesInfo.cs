@@ -32,7 +32,7 @@ namespace SSLCertCheck
 			ServicePointManager.ServerCertificateValidationCallback += ServerCertificateValidationCallback;
 
 			var request = WebRequest.Create(this.Url);
-            var response = request.GetResponse();			
+            request.GetResponse();			
 		}
 
 		private bool ServerCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
