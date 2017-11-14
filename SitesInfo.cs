@@ -8,52 +8,42 @@ namespace SSLCertCheck
 {
 	public class SitesInfo
 	{
-		public SitesInfo(string url) : this(url,443)
+		public SitesInfo(string url)
 		{
-		}
-
-		public SitesInfo(string url, int port)
-		{
-			this.Url = url;
-			this.Port = port;
-
-			CheckCert ();
-		}
+            this.Url = url;
+        }
 
 		#region Properties
 
-		public string Url {
-			get;
-			set;
-		}
+		public string Url { get; set; }
 
-		public int Port {
-			get;
-			set;
-		}
+		public DateTime Expiration { get; set; }
 
-		public X509Certificate Certificate {
-			get;
-			private set;
-		}
+        public string Issuer { get; set; }
+
+        public X509Certificate2 Certificate { get; private set; }
 
 		#endregion
 
 		#region Methods
 
-		private void CheckCert()
+		public void CheckCert()
 		{
 			ServicePointManager.ServerCertificateValidationCallback += ServerCertificateValidationCallback;
 
 			var request = WebRequest.Create(this.Url);
-			request.GetResponse();
+            var response = request.GetResponse();			
 		}
 
 		private bool ServerCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 		{
-			this.Certificate = certificate;
+            var newCert = (X509Certificate2)certificate;
 
-			return true;
+            this.Certificate = newCert;
+            this.Expiration = newCert.NotAfter;
+            this.Issuer = newCert.Issuer;
+
+            return true;
 		}
 
 		#endregion

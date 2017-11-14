@@ -7,7 +7,7 @@ namespace SSLCertCheck
 	{
 		public static void Main (string[] args)
 		{
-			string[] sites;
+            string[] sites;
 
 			try {
 				sites = LoadSites();
@@ -19,10 +19,27 @@ namespace SSLCertCheck
 			foreach (var site in sites) {
 				Console.WriteLine ("Checking: {0}", site);
 				var siteCheck = new SitesInfo(site);
-				Console.WriteLine ("-- Expiration: {0}", siteCheck.Certificate.GetExpirationDateString ());
+                try
+                {
+                    siteCheck.CheckCert();
+                    Console.WriteLine("-- Expiration: {0}", siteCheck.Expiration);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("X- There was an issue getting the certificate: {0}", ex.Message);
+                    // throw;
+                }
+                
 
+				
 			}
-		}
+
+#if DEBUG
+            Console.WriteLine("-- Press a Key to Continue --");
+            Console.ReadKey(true);
+#endif
+
+        }
 
 		public static string[] LoadSites()
 		{
