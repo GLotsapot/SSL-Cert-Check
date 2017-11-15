@@ -38,9 +38,20 @@ namespace SSLCertCheck
                 try
                 {
                     siteCheck.CheckCert();
-					//TODO: Change the line color of output if certificate will expire soon
-                    Console.WriteLine("-- Expiration: {0}", siteCheck.Expiration);
-					//TODO: Send email if certificate will expire soon
+
+                    var expiresIn = (siteCheck.Expiration - DateTime.Today).TotalDays;
+
+                    var message = string.Format("-- Expiration: {0} ({1} days)", siteCheck.Expiration, expiresIn);
+                    if (expiresIn > expireAlertDays)
+                    {
+                        Console.WriteLine(message);
+                    }
+                    else
+                    {
+                        ColorConsole(message, ConsoleColor.Red);
+                        //TODO: Send email if certificate will expire soon
+                    }
+
                 }
                 catch (Exception ex)
                 {
