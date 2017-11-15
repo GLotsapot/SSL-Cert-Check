@@ -1,12 +1,28 @@
 ﻿using System;
 using System.IO;
+using System.Configuration; 
 
 namespace SSLCertCheck
 {
 	class MainClass
 	{
-		public static void Main (string[] args)
+        #region Fields
+
+        static string siteListFile = "./certlist.txt";
+        static int expireAlertDays = 0;
+
+        static bool emailEnabled = false;
+        static string emailServer = "";
+        static int emailPort = 25;
+        static string emailFrom = "";
+        static string emailTo = "";
+
+        #endregion
+
+        public static void Main (string[] args)
 		{
+			LoadSettings();
+
             string[] sites;
 
 			try {
@@ -22,7 +38,9 @@ namespace SSLCertCheck
                 try
                 {
                     siteCheck.CheckCert();
+					//TODO: Change the line color of output if certificate will expire soon
                     Console.WriteLine("-- Expiration: {0}", siteCheck.Expiration);
+					//TODO: Send email if certificate will expire soon
                 }
                 catch (Exception ex)
                 {
@@ -42,16 +60,56 @@ namespace SSLCertCheck
         }
 
 		/// <summary>
+		/// Loads settings from app.config file
+		/// </summary>
+		public static void LoadSettings()
+		{
+            if (ConfigurationManager.AppSettings["siteListFile"] != null)
+            {
+                siteListFile = ConfigurationManager.AppSettings["siteListFile"];
+            }
+
+            if (ConfigurationManager.AppSettings["expireAlertDays"] != null)
+            {
+                expireAlertDays = Convert.ToInt32(ConfigurationManager.AppSettings["expireAlertDays"]);
+            }
+
+            if (ConfigurationManager.AppSettings["emailEnabled"] != null)
+            {
+                emailEnabled = Convert.ToBoolean(ConfigurationManager.AppSettings["emailEnabled"]);
+            }
+
+            if (ConfigurationManager.AppSettings["emailServer"] != null)
+            {
+                emailServer = ConfigurationManager.AppSettings["emailServer"];
+            }
+
+            if (ConfigurationManager.AppSettings["emailPort"] != null)
+            {
+                emailPort = Convert.ToInt32(ConfigurationManager.AppSettings["emailPort"]);
+            }
+
+            if (ConfigurationManager.AppSettings["emailFrom"] != null)
+            {
+                emailFrom = ConfigurationManager.AppSettings["emailFrom"];
+            }
+
+            if (ConfigurationManager.AppSettings["emailTo"] != null)
+            {
+                emailTo = ConfigurationManager.AppSettings["emailTo"];
+            }
+		}
+
+		/// <summary>
 		/// Reads a text file and returns each line as an array of strings
 		/// </summary>
 		/// <returns>An array of URLs to check</returns>
 		public static string[] LoadSites()
 		{
-			string sitesListFile = "./certlist.txt";
-			if(!File.Exists(sitesListFile)){
-				Console.WriteLine ("The file {0} with a list of URLs did not exist. Creating a blank one for your convinience.", sitesListFile);
+			if(!File.Exists(siteListFile)){
+				Console.WriteLine ("The file {0} with a list of URLs did not exist. Creating a blank one for your convinience.", siteListFile);
 				try {
-					System.IO.File.CreateText (sitesListFile);
+					System.IO.File.CreateText (siteListFile);
 					Console.WriteLine("The file was successfully created");
 				} catch (Exception ex) {
 					Console.WriteLine ("Failed to create file: {0}", ex.Message);
@@ -59,8 +117,8 @@ namespace SSLCertCheck
 
 			}
 
-			var sitesList = System.IO.File.ReadAllLines(sitesListFile);
-			return sitesList;
+			var siteList = System.IO.File.ReadAllLines(siteListFile);
+			return siteList;
 		}
 
 		/// <summary>
