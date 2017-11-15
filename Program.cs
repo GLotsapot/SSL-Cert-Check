@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Configuration; 
+using System.Configuration;
+using System.Net.Mail;
 
 namespace SSLCertCheck
 {
@@ -49,7 +50,7 @@ namespace SSLCertCheck
                     else
                     {
                         ColorConsole(message, ConsoleColor.Red);
-                        //TODO: Send email if certificate will expire soon
+                        SendNotification(siteCheck);
                     }
 
                 }
@@ -131,6 +132,22 @@ namespace SSLCertCheck
 			var siteList = System.IO.File.ReadAllLines(siteListFile);
 			return siteList;
 		}
+
+        /// <summary>
+        /// Sends an email about an expiring certificate
+        /// </summary>
+        /// <param name="site">The site to send a message about</param>
+        public static void SendNotification(SitesInfo site)
+        {
+            if (!emailEnabled) { return; }
+
+            var emailSubject = String.Format("Expiring Certificate: {0}", site.Url);
+            var emailBody = String.Format("The certificate for {0} will expire soon on {1}", site.Url, site.Expiration);
+
+            var smtpClient = new SmtpClient(emailServer, emailPort);
+            smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
+            smtpClient.SendMailAsync(emailFrom, emailTo, emailSubject, emailBody);
+        }
 
 		/// <summary>
 		/// Colors the console.
