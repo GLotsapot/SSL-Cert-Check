@@ -6,9 +6,20 @@ namespace SSLCertCheck
 {
 	class MainClass
 	{
-		static string siteListFile;
+        #region Fields
 
-		public static void Main (string[] args)
+        static string siteListFile = "./certlist.txt";
+        static int expireAlertDays = 0;
+
+        static bool emailEnabled = false;
+        static string emailServer = "";
+        static int emailPort = 25;
+        static string emailFrom = "";
+        static string emailTo = "";
+
+        #endregion
+
+        public static void Main (string[] args)
 		{
 			LoadSettings();
 
@@ -53,17 +64,40 @@ namespace SSLCertCheck
 		/// </summary>
 		public static void LoadSettings()
 		{
-			siteListFile = ConfigurationManager.AppSettings["siteListFile"];
-			if (siteListFile == null) {
-				siteListFile = "./certlist.txt";
-			}
+            if (ConfigurationManager.AppSettings["siteListFile"] != null)
+            {
+                siteListFile = ConfigurationManager.AppSettings["siteListFile"];
+            }
 
-			//TODO: Change emailPort and enableEmail to the correct variable types
-			string emailEnabled = ConfigurationManager.AppSettings["emailEnabled"];
-			string emailServer = ConfigurationManager.AppSettings ["emailServer"];
-			string emailPort = ConfigurationManager.AppSettings ["emailPort"];
-			string emailFrom = ConfigurationManager.AppSettings ["emailFrom"];
-			string emailTo = ConfigurationManager.AppSettings ["emailTo"];
+            if (ConfigurationManager.AppSettings["expireAlertDays"] != null)
+            {
+                expireAlertDays = Convert.ToInt32(ConfigurationManager.AppSettings["expireAlertDays"]);
+            }
+
+            if (ConfigurationManager.AppSettings["emailEnabled"] != null)
+            {
+                emailEnabled = Convert.ToBoolean(ConfigurationManager.AppSettings["emailEnabled"]);
+            }
+
+            if (ConfigurationManager.AppSettings["emailServer"] != null)
+            {
+                emailServer = ConfigurationManager.AppSettings["emailServer"];
+            }
+
+            if (ConfigurationManager.AppSettings["emailPort"] != null)
+            {
+                emailPort = Convert.ToInt32(ConfigurationManager.AppSettings["emailPort"]);
+            }
+
+            if (ConfigurationManager.AppSettings["emailFrom"] != null)
+            {
+                emailFrom = ConfigurationManager.AppSettings["emailFrom"];
+            }
+
+            if (ConfigurationManager.AppSettings["emailTo"] != null)
+            {
+                emailTo = ConfigurationManager.AppSettings["emailTo"];
+            }
 		}
 
 		/// <summary>
