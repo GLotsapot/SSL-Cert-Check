@@ -3,11 +3,15 @@ using System.IO;
 using System.Configuration;
 using System.Net.Mail;
 
+[assembly: log4net.Config.XmlConfigurator(Watch=true)]
+
 namespace SSLCertCheck
 {
 	class MainClass
 	{
         #region Fields
+
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static string siteListFile = "./certlist.txt";
         static int expireAlertDays = 0;
