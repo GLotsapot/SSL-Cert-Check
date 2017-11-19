@@ -33,7 +33,8 @@ namespace SSLCertCheck
 			try {
 				sites = LoadSites();
 			} catch (Exception ex) {
-				Console.WriteLine ("There was an issue trying to load the sites listing - {0}", ex.Message);
+                log.Error("There was an issue trying to load the sites listing", ex);
+                // Console.WriteLine ("There was an issue trying to load the sites listing - {0}", ex.Message);
 				return;
 			}
 
@@ -80,6 +81,8 @@ namespace SSLCertCheck
 		/// </summary>
 		public static void LoadSettings()
 		{
+            log.Debug("Loading Settings - Started");
+
             if (ConfigurationManager.AppSettings["siteListFile"] != null)
             {
                 siteListFile = ConfigurationManager.AppSettings["siteListFile"];
@@ -114,7 +117,9 @@ namespace SSLCertCheck
             {
                 emailTo = ConfigurationManager.AppSettings["emailTo"];
             }
-		}
+
+            log.Debug("Loading Settings - Finished");
+        }
 
 		/// <summary>
 		/// Reads a text file and returns each line as an array of strings
@@ -122,7 +127,9 @@ namespace SSLCertCheck
 		/// <returns>An array of URLs to check</returns>
 		public static string[] LoadSites()
 		{
-			if(!File.Exists(siteListFile)){
+            log.Debug("Loading Sites - Started");
+
+            if (!File.Exists(siteListFile)){
 				Console.WriteLine ("The file {0} with a list of URLs did not exist. Creating a blank one for your convinience.", siteListFile);
 				try {
 					System.IO.File.CreateText (siteListFile);
@@ -132,10 +139,12 @@ namespace SSLCertCheck
 				}
 
 			}
-
 			var siteList = System.IO.File.ReadAllLines(siteListFile);
-			return siteList;
-		}
+
+            log.Debug("Loading Sites - Finished");
+
+            return siteList;
+        }
 
         /// <summary>
         /// Sends an email about an expiring certificate
