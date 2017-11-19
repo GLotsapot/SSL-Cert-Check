@@ -3,11 +3,15 @@ using System.IO;
 using System.Configuration;
 using System.Net.Mail;
 
+[assembly: log4net.Config.XmlConfigurator(Watch=true)]
+
 namespace SSLCertCheck
 {
 	class MainClass
 	{
         #region Fields
+
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static string siteListFile = "./certlist.txt";
         static int expireAlertDays = 0;
@@ -29,12 +33,12 @@ namespace SSLCertCheck
 			try {
 				sites = LoadSites();
 			} catch (Exception ex) {
-				Console.WriteLine ("There was an issue trying to load the sites listing - {0}", ex.Message);
+                log.Error("There was an issue trying to load the sites listing", ex);
 				return;
 			}
 
 			foreach (var site in sites) {
-				Console.WriteLine ("Checking: {0}", site);
+				log.Info(String.Format("Checking: {0}", site));
 				var siteCheck = new SitesInfo(site);
                 try
                 {
@@ -42,22 +46,21 @@ namespace SSLCertCheck
 
                     var expiresIn = (siteCheck.Expiration - DateTime.Today).TotalDays;
 
-                    var message = string.Format("-- Expiration: {0} ({1} days)", siteCheck.Expiration, expiresIn);
+                    var message = string.Format("Expiration: {0} ({1} days)", siteCheck.Expiration, expiresIn);
                     if (expiresIn > expireAlertDays)
                     {
-                        Console.WriteLine(message);
+                        log.Info(message);
                     }
                     else
                     {
-                        ColorConsole(message, ConsoleColor.Red);
+                        log.Warn(message);
                         SendNotification(siteCheck);
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("X- There was an issue getting the certificate: {0}", ex.Message);
-                    // throw;
+                    log.Error("There was an issue getting the certificate", ex);
                 }
                 
 
@@ -76,6 +79,8 @@ namespace SSLCertCheck
 		/// </summary>
 		public static void LoadSettings()
 		{
+            log.Debug("Loading Settings - Started");
+
             if (ConfigurationManager.AppSettings["siteListFile"] != null)
             {
                 siteListFile = ConfigurationManager.AppSettings["siteListFile"];
@@ -110,7 +115,9 @@ namespace SSLCertCheck
             {
                 emailTo = ConfigurationManager.AppSettings["emailTo"];
             }
-		}
+
+            log.Debug("Loading Settings - Finished");
+        }
 
 		/// <summary>
 		/// Reads a text file and returns each line as an array of strings
@@ -118,20 +125,24 @@ namespace SSLCertCheck
 		/// <returns>An array of URLs to check</returns>
 		public static string[] LoadSites()
 		{
-			if(!File.Exists(siteListFile)){
-				Console.WriteLine ("The file {0} with a list of URLs did not exist. Creating a blank one for your convinience.", siteListFile);
+            log.Debug("Loading Sites - Started");
+
+            if (!File.Exists(siteListFile)){
+                log.Warn("The file with a list of URLs did not exist. Creating a blank one for your convinience.");
 				try {
 					System.IO.File.CreateText (siteListFile);
-					Console.WriteLine("The file was successfully created");
+					log.Info("The file was successfully created");
 				} catch (Exception ex) {
-					Console.WriteLine ("Failed to create file: {0}", ex.Message);
+					log.Fatal("Failed to create file: {0}", ex);
 				}
 
 			}
-
 			var siteList = System.IO.File.ReadAllLines(siteListFile);
-			return siteList;
-		}
+
+            log.Debug("Loading Sites - Finished");
+
+            return siteList;
+        }
 
         /// <summary>
         /// Sends an email about an expiring certificate
@@ -139,6 +150,8 @@ namespace SSLCertCheck
         /// <param name="site">The site to send a message about</param>
         public static void SendNotification(SitesInfo site)
         {
+            log.Debug("SendNotification - Started");
+
             if (!emailEnabled) { return; }
 
             var emailSubject = String.Format("Expiring Certificate: {0}", site.Url);
@@ -147,6 +160,8 @@ namespace SSLCertCheck
             var smtpClient = new SmtpClient(emailServer, emailPort);
             smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
             smtpClient.SendMailAsync(emailFrom, emailTo, emailSubject, emailBody);
+
+            log.Debug("SendNotification - Finished");
         }
 
 		/// <summary>
