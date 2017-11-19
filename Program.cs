@@ -34,12 +34,11 @@ namespace SSLCertCheck
 				sites = LoadSites();
 			} catch (Exception ex) {
                 log.Error("There was an issue trying to load the sites listing", ex);
-                // Console.WriteLine ("There was an issue trying to load the sites listing - {0}", ex.Message);
 				return;
 			}
 
 			foreach (var site in sites) {
-				Console.WriteLine ("Checking: {0}", site);
+				log.Info(String.Format("Checking: {0}", site));
 				var siteCheck = new SitesInfo(site);
                 try
                 {
@@ -47,22 +46,21 @@ namespace SSLCertCheck
 
                     var expiresIn = (siteCheck.Expiration - DateTime.Today).TotalDays;
 
-                    var message = string.Format("-- Expiration: {0} ({1} days)", siteCheck.Expiration, expiresIn);
+                    var message = string.Format("Expiration: {0} ({1} days)", siteCheck.Expiration, expiresIn);
                     if (expiresIn > expireAlertDays)
                     {
-                        Console.WriteLine(message);
+                        log.Info(message);
                     }
                     else
                     {
-                        ColorConsole(message, ConsoleColor.Red);
+                        log.Warn(message);
                         SendNotification(siteCheck);
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("X- There was an issue getting the certificate: {0}", ex.Message);
-                    // throw;
+                    log.Error("There was an issue getting the certificate", ex);
                 }
                 
 
@@ -130,12 +128,12 @@ namespace SSLCertCheck
             log.Debug("Loading Sites - Started");
 
             if (!File.Exists(siteListFile)){
-				Console.WriteLine ("The file {0} with a list of URLs did not exist. Creating a blank one for your convinience.", siteListFile);
+                log.Warn("The file with a list of URLs did not exist. Creating a blank one for your convinience.");
 				try {
 					System.IO.File.CreateText (siteListFile);
-					Console.WriteLine("The file was successfully created");
+					log.Info("The file was successfully created");
 				} catch (Exception ex) {
-					Console.WriteLine ("Failed to create file: {0}", ex.Message);
+					log.Fatal("Failed to create file: {0}", ex);
 				}
 
 			}
@@ -152,6 +150,8 @@ namespace SSLCertCheck
         /// <param name="site">The site to send a message about</param>
         public static void SendNotification(SitesInfo site)
         {
+            log.Debug("SendNotification - Started");
+
             if (!emailEnabled) { return; }
 
             var emailSubject = String.Format("Expiring Certificate: {0}", site.Url);
@@ -160,6 +160,8 @@ namespace SSLCertCheck
             var smtpClient = new SmtpClient(emailServer, emailPort);
             smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
             smtpClient.SendMailAsync(emailFrom, emailTo, emailSubject, emailBody);
+
+            log.Debug("SendNotification - Finished");
         }
 
 		/// <summary>
