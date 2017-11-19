@@ -158,7 +158,14 @@ namespace SSLCertCheck
 
             var smtpClient = new SmtpClient(emailServer, emailPort);
             smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-            smtpClient.SendMailAsync(emailFrom, emailTo, emailSubject, emailBody);
+            try
+            {
+                smtpClient.SendMailAsync(emailFrom, emailTo, emailSubject, emailBody);
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error sending email", ex);
+            }
 
             log.Debug("SendNotification - Finished");
         }
