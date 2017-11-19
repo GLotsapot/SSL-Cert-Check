@@ -13,14 +13,13 @@ namespace SSLCertCheck
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        static string siteListFile = "./certlist.txt";
-        static int expireAlertDays = 0;
-
-        static bool emailEnabled = false;
-        static string emailServer = "";
-        static int emailPort = 25;
-        static string emailFrom = "";
-        static string emailTo = "";
+        static string siteListFile;
+        static int expireAlertDays;
+        static bool emailEnabled;
+        static string emailServer;
+        static int emailPort;
+        static string emailFrom;
+        static string emailTo;
 
         #endregion
 
