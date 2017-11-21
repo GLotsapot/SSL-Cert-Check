@@ -25,6 +25,7 @@ namespace SSLCertCheck
 
         public static void Main (string[] args)
 		{
+			Console.Title = "SSL Certificate Checker";
 			LoadSettings();
 
             string[] sites;
@@ -151,7 +152,11 @@ namespace SSLCertCheck
         {
             log.Debug("SendNotification - Started");
 
-            if (!emailEnabled) { return; }
+            if (!emailEnabled) 
+			{ 
+				log.Debug("SendNotification - Email option disabled, skipping");
+				return; 
+			}
 
             var emailSubject = String.Format("Expiring Certificate: {0}", site.Url);
             var emailBody = String.Format("The certificate for {0} will expire soon on {1}", site.Url, site.Expiration);
@@ -161,27 +166,14 @@ namespace SSLCertCheck
             try
             {
                 smtpClient.SendMailAsync(emailFrom, emailTo, emailSubject, emailBody);
+				log.Info("SendNotification - Email Sent");
             }
             catch (Exception ex)
             {
-                log.Error("Error sending email", ex);
+				log.Error("SendNotification - Email Sending Error", ex);
             }
 
             log.Debug("SendNotification - Finished");
         }
-
-		/// <summary>
-		/// Colors the console.
-		/// </summary>
-		/// <param name="message">Message line to display</param>
-		/// <param name="bg">Background color to use</param>
-		/// <param name="fg">Foreground color to use</param>
-		public static void ColorConsole(string message, ConsoleColor bg = ConsoleColor.Blue, ConsoleColor fg = ConsoleColor.Yellow)
-		{
-			Console.BackgroundColor = bg;
-			Console.ForegroundColor = fg;
-			Console.WriteLine (message);
-			Console.ResetColor ();
-		}
 	}
 }
