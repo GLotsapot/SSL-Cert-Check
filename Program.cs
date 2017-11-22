@@ -130,7 +130,9 @@ namespace SSLCertCheck
             if (!File.Exists(siteListFile)){
                 log.Warn("The file with a list of URLs did not exist. Creating a blank one for your convinience.");
 				try {
-					System.IO.File.CreateText (siteListFile);
+					var sw = System.IO.File.CreateText(siteListFile);
+                    sw.WriteLine("https://github.com/GLotsapot");
+                    sw.Close();
 					log.Info("The file was successfully created");
 				} catch (Exception ex) {
 					log.Fatal("Failed to create file: {0}", ex);
