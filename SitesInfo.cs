@@ -40,14 +40,12 @@ namespace SSLCertCheck
         /// <summary>
         /// Expiration date of the certificate
         /// </summary>
-		public DateTime Expiration { get { return Certificate.NotAfter; } }
+		public DateTime Expiration { get; private set; }
 
         /// <summary>
         /// Issuer of the certificate
         /// </summary>
-        public string Issuer { get { return Certificate.Issuer; } }
-
-        private X509Certificate2 Certificate { get; set; }
+        public string Issuer { get; private set; }
 
         #endregion
 
@@ -61,13 +59,19 @@ namespace SSLCertCheck
 		{
             log.Debug("CheckCert: Requesting website");
 
-            ServicePointManager.ServerCertificateValidationCallback += ServerCertificateValidationCallback;
-
             var request = (HttpWebRequest)WebRequest.Create(this.Url);
             request.AllowAutoRedirect = false;
-            request.GetResponse();
 
-            ServicePointManager.ServerCertificateValidationCallback -= ServerCertificateValidationCallback;
+            try
+            {
+                ServicePointManager.ServerCertificateValidationCallback += ServerCertificateValidationCallback;
+                request.GetResponse();
+            }
+            finally
+            {
+                ServicePointManager.ServerCertificateValidationCallback -= ServerCertificateValidationCallback;
+            }
+            
         }
 
         /// <summary>
@@ -77,7 +81,8 @@ namespace SSLCertCheck
 		{
             log.Debug(String.Format("ServerCertificateValidationCallback: Got a cert for {0}", certificate.Subject));
             var newCert = (X509Certificate2)certificate;
-            this.Certificate = newCert;
+            this.Expiration = newCert.NotAfter;
+            this.Issuer = newCert.Issuer;
 
             return true;
 		}
