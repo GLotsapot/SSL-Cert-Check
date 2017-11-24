@@ -10,48 +10,77 @@ namespace SSLCertCheck
 	{
 		#region Constructors
 
+        /// <summary>
+        /// Create a new site to check
+        /// </summary>
+        /// <param name="url">Full URL of the site to check</param>
+        /// <example>http://www.github.com</example>
 		public SitesInfo(string url)
 		{
             this.Url = url;
         }
 
-		#endregion
+        #endregion
 
 
-		#region Fields
+        #region Fields
 
-		#endregion
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-
-		#region Properties
-
-		public string Url { get; set; }
-
-		public DateTime Expiration { get; set; }
-
-        public string Issuer { get; set; }
-
-        public X509Certificate2 Certificate { get; private set; }
-
-		#endregion
+        #endregion
 
 
-		#region Methods
+        #region Properties
 
-		public void CheckCert()
+        /// <summary>
+        /// Full url of the website to check
+        /// </summary>
+        public string Url { get; set; }
+
+        /// <summary>
+        /// Expiration date of the certificate
+        /// </summary>
+		public DateTime Expiration { get; private set; }
+
+        /// <summary>
+        /// Issuer of the certificate
+        /// </summary>
+        public string Issuer { get; private set; }
+
+        #endregion
+
+
+        #region Methods
+
+        /// <summary>
+        /// Make a web request and capture the SSL handshake. Stored the certificate info in the Certificate property
+        /// </summary>
+        public void CheckCert()
 		{
-			ServicePointManager.ServerCertificateValidationCallback += ServerCertificateValidationCallback;
+            log.Debug("CheckCert: Requesting website");
 
             var request = (HttpWebRequest)WebRequest.Create(this.Url);
             request.AllowAutoRedirect = false;
-            request.GetResponse();
-		}
 
+            try
+            {
+                ServicePointManager.ServerCertificateValidationCallback += ServerCertificateValidationCallback;
+                request.GetResponse();
+            }
+            finally
+            {
+                ServicePointManager.ServerCertificateValidationCallback -= ServerCertificateValidationCallback;
+            }
+            
+        }
+
+        /// <summary>
+        /// Catches the SSL certificate check when a WebRequest is made
+        /// </summary>
 		private bool ServerCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 		{
+            log.Debug(String.Format("ServerCertificateValidationCallback: Got a cert for {0}", certificate.Subject));
             var newCert = (X509Certificate2)certificate;
-
-            this.Certificate = newCert;
             this.Expiration = newCert.NotAfter;
             this.Issuer = newCert.Issuer;
 
