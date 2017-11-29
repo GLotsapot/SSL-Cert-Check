@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Configuration;
+using System.Net;
 using System.Net.Mail;
 
 [assembly: log4net.Config.XmlConfigurator(Watch=true)]
@@ -17,6 +18,8 @@ namespace SSLCertCheck
         static int expireAlertDays;
         static bool emailEnabled;
         static string emailServer;
+		static string emailAuthUsername;
+		static string emailAuthPassword;
         static int emailPort;
         static string emailFrom;
         static string emailTo;
@@ -106,6 +109,16 @@ namespace SSLCertCheck
                 emailPort = Convert.ToInt32(ConfigurationManager.AppSettings["emailPort"]);
             }
 
+			if (ConfigurationManager.AppSettings["emailAuthUsername"] != null)
+			{
+				emailAuthUsername = ConfigurationManager.AppSettings["emailAuthUsername"];
+			}
+
+			if (ConfigurationManager.AppSettings["emailAuthPassword"] != null)
+			{
+				emailAuthPassword = ConfigurationManager.AppSettings["emailAuthPassword"];
+			}
+
             if (ConfigurationManager.AppSettings["emailFrom"] != null)
             {
                 emailFrom = ConfigurationManager.AppSettings["emailFrom"];
@@ -160,13 +173,21 @@ namespace SSLCertCheck
 				return; 
 			}
 
+			var smtpClient = new SmtpClient(emailServer, emailPort);
+			smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+			if (!String.IsNullOrWhiteSpace(emailAuthUsername) & !String.IsNullOrWhiteSpace(emailAuthPassword)) 
+			{
+				log.Debug("SendNotification - Found SMTP credentials to use");
+				smtpClient.Credentials = new NetworkCredential(emailAuthUsername, emailAuthPassword);
+			}
+
             var emailSubject = String.Format("Expiring Certificate: {0}", site.Url);
             var emailBody = String.Format("The certificate for {0} will expire soon on {1}", site.Url, site.Expiration);
 
-            var smtpClient = new SmtpClient(emailServer, emailPort);
-            smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
             try
             {
+				log.Debug("SendNotification - Sending Email");
                 smtpClient.Send(emailFrom, emailTo, emailSubject, emailBody);
 				log.Info("SendNotification - Email Sent");
             }
