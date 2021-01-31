@@ -59,6 +59,13 @@ namespace SSLCertCheck
 		{
             log.Debug("CheckCert: Requesting website");
 
+            // Add several different Security Protocols as options just incase server doesn't allow defaults
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
+                | SecurityProtocolType.Tls11
+                | SecurityProtocolType.Tls12
+                | SecurityProtocolType.Ssl3;
+
             var request = (HttpWebRequest)WebRequest.Create(this.Url);
             request.AllowAutoRedirect = false;
 
@@ -71,7 +78,6 @@ namespace SSLCertCheck
             {
                 ServicePointManager.ServerCertificateValidationCallback -= ServerCertificateValidationCallback;
             }
-            
         }
 
         /// <summary>
